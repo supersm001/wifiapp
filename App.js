@@ -33,7 +33,20 @@ import FIcons from 'react-native-vector-icons/FontAwesome';
 const App = () => {
   const [loading, setLoading] = useState(false);
   const [groupFlag, setGroupFlag] = useState(false);
-  const [devices, setDevices] = useState([{}]);
+  const [devices, setDevices] = useState([]);
+  // const [devices, setDevices] = useState([
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  //   {"deviceAddress": "02:0a:f5:7f:2c:1b", "deviceName": "ASUS_Z012D_1594", "isGroupOwner": true, "primaryDeviceType": "10-0050F204-5", "secondaryDeviceType": null, "status": 3},
+  // ]);
   const [zoneName, setZoneName] = useState("-");
   const [zonePasscode, setZonePasscode] = useState("********");
   const [zoneAddress, setZoneAddress] = useState("00:00:00:00:00:00");
@@ -42,6 +55,7 @@ const App = () => {
     permissions();
     const subscription = subscribeOnPeersUpdates(({devices}) => {
       console.log(`New devices available: ${devices}`);
+      setDevices(devices);
     });
     const subscription2 = subscribeOnConnectionInfoUpdates(event => {
       console.log('Connection Info Updates: ', event);
@@ -97,11 +111,14 @@ const App = () => {
         ToastAndroid.show('Searching...', ToastAndroid.SHORT);
         setLoading(true);
       })
-      .catch(err =>
+      .catch(err =>{
+
         ToastAndroid.show(
           `Something is gone wrong. Maybe your WiFi is disabled? Error details: ${err}`,
           ToastAndroid.LONG,
-        ),
+          );
+          console.log("Find Error : ",err);
+        }
       );
   }
   function StopFinding() {
@@ -119,7 +136,14 @@ const App = () => {
   }
 
   function RealTimeDevices() {
-    getAvailablePeers().then(({devices}) => console.log(devices));
+    getAvailablePeers().then(({devices}) =>{
+      console.log("real time devices : ",devices);
+      if(devices.length>0){
+        setDevices(devices);
+      }
+      
+    } 
+    );
   }
 
   function ConnectToDevice(id) {
@@ -315,17 +339,25 @@ const App = () => {
         <View style={styles.List_Header}>
           <Text style={styles.Title_Text_2}>Devices Found</Text>
         </View>
+        <View style={{flex:1,width:'100%',paddingVertical:5}}>
         <FlatList
-          style={{width: '100%', paddingTop: 5}}
+          style={{width: '100%',flex:1}}
           data={devices}
-          renderItem={(item, index) => {
+          renderItem={({item, index}) => {
             return (
-              <View key={index} style={styles.List_Item}>
-                <Text style={{color: '#FFF'}}>This is Item</Text>
-              </View>
+              <TouchableOpacity activeOpacity={0.5} key={index} style={styles.List_Item}>
+                <View style={{flex:1}}>
+                <Text numberOfLines={1} style={styles.List_Item_Name}>{item.deviceName}</Text>
+                <Text style={styles.List_Item_Address}>{item.deviceAddress}</Text>
+                  </View>
+                  <View style={{marginLeft:10}}>
+                  <FIcons name="wifi" size={20} color="#FFF" />
+                    </View>
+              </TouchableOpacity>
             );
           }}
         />
+        </View>
       </View>
     </View>
   );
@@ -437,6 +469,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 2,
     marginBottom: 5,
+    flexDirection:'row',
+    alignItems:'center'
   },
   Title_Text: {
     color: '#888888',
@@ -462,4 +496,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 14,
   },
+  List_Item_Name:{
+    color:'#FFF',
+    fontSize:14,
+    fontWeight:'700'
+  },
+  List_Item_Address:{
+    color:'#fafafa',
+    fontSize:12,
+    fontWeight:'500'
+  }
 });
