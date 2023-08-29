@@ -198,7 +198,6 @@ const App = () => {
         setZoneName("-");
         setZoneAddress("00:00:00:00:00:00");
         setZonePasscode("********");
-        
       } 
       )
       .catch(err => console.error('Something gone wrong. Details: ', err));
